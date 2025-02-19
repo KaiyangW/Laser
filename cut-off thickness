@@ -1,7 +1,6 @@
 import numpy as np
 import tkinter as tk
 from tkinter import ttk, messagebox
-import customtkinter as ctk  # type: ignore # For modern-looking widgets
 
 def calculate_cutoff_thickness(wavelength, n2, n1=1.45, n3=1.0):
     """
@@ -39,7 +38,7 @@ def calculate_cutoff_thickness(wavelength, n2, n1=1.45, n3=1.0):
 class CutoffCalculatorGUI:
     def __init__(self):
         # Set up the main window
-        self.root = ctk.CTk()
+        self.root = tk.Tk()
         self.root.title("Organic Laser Cut-off Thickness Calculator")
         
         # Get screen dimensions
@@ -55,53 +54,58 @@ class CutoffCalculatorGUI:
         y = (screen_height - window_height) // 2
         self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
         
-        # Configure scaling for 4K
-        scaling_factor = min(screen_width/1920, screen_height/1080)  # Base scale on 1080p
-        ctk.set_widget_scaling(scaling_factor)
+        # Configure style
+        self.style = ttk.Style()
+        self.style.configure('TFrame', background='#f0f0f0')
+        self.style.configure('TLabel', background='#f0f0f0', font=('Calibri', 18))
+        self.style.configure('TButton', font=('Calibri', 18), padding=10)
+        self.style.configure('TEntry', font=('Calibri', 18))
         
         self.create_widgets()
 
     def create_widgets(self):
         # Create main frame
-        main_frame = ctk.CTkFrame(self.root)
-        main_frame.pack(padx=20, pady=20, fill='both', expand=True)
+        main_frame = ttk.Frame(self.root, padding="20")
+        main_frame.pack(fill='both', expand=True)
         
         # Title
-        title_label = ctk.CTkLabel(main_frame, 
-                                 text="Organic Laser Cut-off Thickness Calculator (TE0)",
-                                 font=("Calibri", 22))
+        title_label = ttk.Label(main_frame, 
+                              text="Organic Laser Cut-off Thickness Calculator (TE0)",
+                              font=('Calibri', 22))
         title_label.pack(pady=10)
         
         # Input frame
-        input_frame = ctk.CTkFrame(main_frame)
+        input_frame = ttk.Frame(main_frame)
         input_frame.pack(padx=10, pady=10, fill='x')
         
         # Wavelength input
-        wavelength_label = ctk.CTkLabel(input_frame, text="Wavelength (nm):", font=("Calibri", 18))
+        wavelength_label = ttk.Label(input_frame, text="Wavelength (nm):")
         wavelength_label.pack(pady=5)
-        self.wavelength_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter wavelength", font=("Calibri", 18))
-        self.wavelength_entry.pack(pady=5)
+        self.wavelength_entry = ttk.Entry(input_frame)
+        self.wavelength_entry.pack(pady=5, ipady=5)
         
         # n2 input
-        n2_label = ctk.CTkLabel(input_frame, text="n₂ (organic medium):", font=("Calibri", 18))
+        n2_label = ttk.Label(input_frame, text="n₂ (organic medium):")
         n2_label.pack(pady=5)
-        self.n2_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter n₂", font=("Calibri", 18))
-        self.n2_entry.pack(pady=5)
+        self.n2_entry = ttk.Entry(input_frame)
+        self.n2_entry.pack(pady=5, ipady=5)
         
         # Fixed values display
-        fixed_values_frame = ctk.CTkFrame(main_frame)
+        fixed_values_frame = ttk.Frame(main_frame)
         fixed_values_frame.pack(padx=10, pady=10, fill='x')
         
         fixed_values_text = "Fixed Values:\nn₁ (glass) = 1.45\nn₃ (air) = 1.0"
-        fixed_values_label = ctk.CTkLabel(fixed_values_frame, text=fixed_values_text, font=("Calibri", 18))
+        fixed_values_label = ttk.Label(fixed_values_frame, text=fixed_values_text)
         fixed_values_label.pack(pady=5)
         
         # Calculate button
-        self.calc_button = ctk.CTkButton(main_frame, text="Calculate", font=("Calibri", 18),command=self.calculate)
+        self.calc_button = ttk.Button(main_frame, 
+                                    text="Calculate",
+                                    command=self.calculate)
         self.calc_button.pack(pady=10)
         
         # Result display
-        self.result_label = ctk.CTkLabel(main_frame, text="")
+        self.result_label = ttk.Label(main_frame, text="", font=('Calibri', 16))
         self.result_label.pack(pady=10)
 
     def calculate(self):
@@ -115,8 +119,7 @@ class CutoffCalculatorGUI:
             
             # Display result
             self.result_label.configure(
-                text=f"Cut-off thickness: {result:.2f} nm",
-                font=("Calibri", 16)
+                text=f"Cut-off thickness: {result:.2f} nm"
             )
             
         except ValueError as e:
