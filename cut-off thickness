@@ -1,0 +1,132 @@
+import numpy as np
+import tkinter as tk
+from tkinter import ttk, messagebox
+import customtkinter as ctk  # type: ignore # For modern-looking widgets
+
+def calculate_cutoff_thickness(wavelength, n2, n1=1.45, n3=1.0):
+    """
+    Calculate the cut-off thickness for an organic laser waveguide, TE0 mode only. 
+    
+    Parameters:
+    wavelength (float): The wavelength (λ₀) in nanometers
+    n2 (float): Refractive index of organic gain medium layer
+    n1 (float): Refractive index of glass substrate (default: 1.45)
+    n3 (float): Refractive index of air (default: 1.0)
+    
+    Returns:
+    float: Cut-off thickness (h_c) in nanometers
+    """
+    try:
+        # Validate inputs
+        if n2 <= n1 or n1 <= n3:
+            raise ValueError("Refractive indices must satisfy n2 > n1 > n3")
+        if wavelength <= 0:
+            raise ValueError("Wavelength must be positive")
+            
+        # Calculate terms inside the equation
+        term1 = wavelength / (2 * np.pi * np.sqrt(n2**2 - n1**2))
+        term2 = np.arctan(np.sqrt((n1**2 - n3**2)/(n2**2 - n1**2)))
+        
+        # Calculate cut-off thickness
+        h_c = term1 * term2
+        
+        return h_c
+    except ValueError as e:
+        raise e
+    except Exception as e:
+        raise ValueError(f"Calculation error: {str(e)}")
+
+class CutoffCalculatorGUI:
+    def __init__(self):
+        # Set up the main window
+        self.root = ctk.CTk()
+        self.root.title("Organic Laser Cut-off Thickness Calculator")
+        
+        # Get screen dimensions
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        
+        # Calculate window size (scaled for 4K)
+        window_width = int(screen_width * 0.3)  # 30% of screen width
+        window_height = int(screen_height * 0.4)  # 40% of screen height
+        
+        # Center the window
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+        self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+        
+        # Configure scaling for 4K
+        scaling_factor = min(screen_width/1920, screen_height/1080)  # Base scale on 1080p
+        ctk.set_widget_scaling(scaling_factor)
+        
+        self.create_widgets()
+
+    def create_widgets(self):
+        # Create main frame
+        main_frame = ctk.CTkFrame(self.root)
+        main_frame.pack(padx=20, pady=20, fill='both', expand=True)
+        
+        # Title
+        title_label = ctk.CTkLabel(main_frame, 
+                                 text="Organic Laser Cut-off Thickness Calculator (TE0)",
+                                 font=("Calibri", 22))
+        title_label.pack(pady=10)
+        
+        # Input frame
+        input_frame = ctk.CTkFrame(main_frame)
+        input_frame.pack(padx=10, pady=10, fill='x')
+        
+        # Wavelength input
+        wavelength_label = ctk.CTkLabel(input_frame, text="Wavelength (nm):", font=("Calibri", 18))
+        wavelength_label.pack(pady=5)
+        self.wavelength_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter wavelength", font=("Calibri", 18))
+        self.wavelength_entry.pack(pady=5)
+        
+        # n2 input
+        n2_label = ctk.CTkLabel(input_frame, text="n₂ (organic medium):", font=("Calibri", 18))
+        n2_label.pack(pady=5)
+        self.n2_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter n₂", font=("Calibri", 18))
+        self.n2_entry.pack(pady=5)
+        
+        # Fixed values display
+        fixed_values_frame = ctk.CTkFrame(main_frame)
+        fixed_values_frame.pack(padx=10, pady=10, fill='x')
+        
+        fixed_values_text = "Fixed Values:\nn₁ (glass) = 1.45\nn₃ (air) = 1.0"
+        fixed_values_label = ctk.CTkLabel(fixed_values_frame, text=fixed_values_text, font=("Calibri", 18))
+        fixed_values_label.pack(pady=5)
+        
+        # Calculate button
+        self.calc_button = ctk.CTkButton(main_frame, text="Calculate", font=("Calibri", 18),command=self.calculate)
+        self.calc_button.pack(pady=10)
+        
+        # Result display
+        self.result_label = ctk.CTkLabel(main_frame, text="")
+        self.result_label.pack(pady=10)
+
+    def calculate(self):
+        try:
+            # Get and validate inputs
+            wavelength = float(self.wavelength_entry.get())
+            n2 = float(self.n2_entry.get())
+            
+            # Calculate result
+            result = calculate_cutoff_thickness(wavelength, n2)
+            
+            # Display result
+            self.result_label.configure(
+                text=f"Cut-off thickness: {result:.2f} nm",
+                font=("Calibri", 16)
+            )
+            
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+    def run(self):
+        self.root.mainloop()
+
+if __name__ == "__main__":
+    app = CutoffCalculatorGUI()
+    app.run()
